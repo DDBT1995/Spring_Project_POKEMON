@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.sist.web.dao.UserDao">
+
+<resultMap type="com.sist.web.model.User" id="userResultMap">
+	<id column="USER_EMAIL" property="userEmail" />
+	<result column="USER_PWD" property="userPwd" />
+	<result column="USER_NAME" property="userName" />
+	<result column="USER_NICKNAME" property="userNickname" />
+	<result column="USER_TEL" property="userTel" />
+	<result column="USER_BIRTH" property="userBirth" />
+	<result column="USER_ADDR" property="userAddr" />
+	
+	<result column="USER_POSTCODE" property="userPostcode" />
+	<result column="USER_DETAILADDR" property="userDetailaddr" />
+	
+	<result column="USER_STATUS" property="userStatus" />
+	<result column="USER_REG_DATE" property="userRegDate" />
+	<result column="USER_MODI_DATE" property="userModiDate" />
+	<result column="USER_DEL_DATE" property="userDelDate" />
+</resultMap>
+	
+<select id="userSelect" parameterType="String" resultMap="userResultMap">
+	SELECT  USER_EMAIL,
+        NVL(USER_PWD, '') USER_PWD,
+        NVL(USER_NAME, '') USER_NAME,
+        NVL(USER_NICKNAME, '') USER_NICKNAME,
+        NVL(USER_TEL, '') USER_TEL,
+        NVL(USER_BIRTH, '') USER_BIRTH,
+        NVL(USER_ADDR, '') USER_ADDR,
+        
+		NVL(USER_POSTCODE, '') USER_POSTCODE,
+		NVL(USER_DETAILADDR, '') USER_DETAILADDR,
+	
+        NVL(USER_STATUS, 'Y') USER_STATUS,
+        NVL(TO_CHAR(USER_REG_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_REG_DATE,
+        NVL(TO_CHAR(USER_MODI_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_MODI_DATE,
+        NVL(TO_CHAR(USER_DEL_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_DEL_DATE
+	FROM	PK_USER
+    WHERE USER_EMAIL = #{value}
+</select>
+
+<select id="userMailFind" parameterType="String" resultMap="userResultMap">
+	SELECT  USER_EMAIL,
+        NVL(USER_PWD, '') USER_PWD,
+        NVL(USER_NAME, '') USER_NAME,
+        NVL(USER_NICKNAME, '') USER_NICKNAME,
+        NVL(USER_TEL, '') USER_TEL,
+        NVL(USER_BIRTH, '') USER_BIRTH,
+        NVL(USER_ADDR, '') USER_ADDR,
+        
+		NVL(USER_POSTCODE, '') USER_POSTCODE,
+		NVL(USER_DETAILADDR, '') USER_DETAILADDR,
+	
+        NVL(USER_STATUS, 'Y') USER_STATUS,
+        NVL(TO_CHAR(USER_REG_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_REG_DATE,
+        NVL(TO_CHAR(USER_MODI_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_MODI_DATE,
+        NVL(TO_CHAR(USER_DEL_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_DEL_DATE
+FROM    PK_USER
+    WHERE USER_NAME = #{userName}
+    AND USER_TEL = #{userTel}
+</select>
+
+<select id="userPwFind" parameterType="String" resultMap="userResultMap">
+	SELECT  USER_EMAIL,
+        NVL(USER_PWD, '') USER_PWD,
+        NVL(USER_NAME, '') USER_NAME,
+        NVL(USER_NICKNAME, '') USER_NICKNAME,
+        NVL(USER_TEL, '') USER_TEL,
+        NVL(USER_BIRTH, '') USER_BIRTH,
+        NVL(USER_ADDR, '') USER_ADDR,
+        
+		NVL(USER_POSTCODE, '') USER_POSTCODE,
+		NVL(USER_DETAILADDR, '') USER_DETAILADDR,
+	
+        NVL(USER_STATUS, 'Y') USER_STATUS,
+        NVL(TO_CHAR(USER_REG_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_REG_DATE,
+        NVL(TO_CHAR(USER_MODI_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_MODI_DATE,
+        NVL(TO_CHAR(USER_DEL_DATE, 'MMMM.DD.YY HH24:MI:SS'), '') USER_DEL_DATE
+FROM    PK_USER
+    WHERE USER_EMAIL = #{value}
+</select>
+
+<update id="userPwUpdate" parameterType="com.sist.web.model.User">
+UPDATE  PK_USER
+  SET   USER_PWD = #{userPwd}
+  WHERE USER_EMAIL = #{userEmail}
+</update>
+
+<insert id="userInsert" parameterType="com.sist.web.model.User">
+		
+		INSERT INTO PK_USER (
+	    USER_EMAIL,
+	    USER_PWD,
+	    USER_NAME,
+	    USER_NICKNAME,
+	    USER_TEL,
+	    USER_BIRTH,
+	    USER_ADDR,
+	    
+	    USER_POSTCODE,
+	    USER_DETAILADDR,
+	    
+	    USER_STATUS,
+	    USER_REG_DATE,
+	    USER_MODI_DATE,
+	    USER_DEL_DATE
+	) VALUES (
+	    #{userEmail},
+	    #{userPwd},
+	    #{userName},
+	    #{userNickname},
+	    #{userTel},
+	    #{userBirth},
+	    #{userAddr},
+	    
+	    #{userPostcode},
+	    #{userDetailaddr},
+	    
+	    #{userStatus},
+	    SYSDATE,
+	    NULL,
+	    NULL
+	)
+	</insert>
+	
+	
+	
+	
+	
+	
+<update id="userUpdate" parameterType="com.sist.web.model.User">
+		UPDATE  PK_USER
+  SET   USER_PWD = #{userPwd}, 
+        USER_NICKNAME = #{userNickname},
+        USER_TEL = #{userTel},
+        USER_POSTCODE = #{userPostcode},
+        USER_ADDR = #{userAddr},
+        USER_DETAILADDR = #{userDetailaddr}
+  WHERE USER_EMAIL = #{userEmail}
+</update>
+
+<update id="userWithdraw" parameterType="com.sist.web.model.User">
+		UPDATE  PK_USER
+  SET   USER_STATUS = #{userStatus}
+  WHERE USER_EMAIL = #{userEmail}
+</update>
+
+
+
+</mapper>

@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sist.web.dao.PoketmonDao">
+   
+   <resultMap type="com.sist.web.model.Poketmon" id="poketmonResultMap">
+      <id column="POKE_ID" property="pokeId"/>
+      <result column="POKE_TYPE_FIRST" property="pokeTypeFirst"/>
+      <result column="POKE_TYPENAME_FIRST" property="pokeTypenameFirst"/>
+      <result column="POKE_TYPE_SECOND" property="pokeTypeSecond"/>
+      <result column="POKE_TYPENAME_SECOND" property="pokeTypenameSecond"/>
+      <result column="POKE_TYPE_COLOR_FIRST" property="pokeTypeColorFirst"/>
+      <result column="POKE_TYPE_COLOR_SECOND" property="pokeTypeColorSecond"/>
+      <result column="POKE_NAME" property="pokeName"/>
+      <result column="POKE_HEIGHT" property="pokeHeight"/>
+      <result column="POKE_WEIGHT" property="pokeWeight"/>
+      <result column="POKE_IMG" property="pokeImg"/>
+      <result column="POKE_CONTENT" property="pokeContent"/>
+      <result column="POKE_EVO" property="pokeEvo"/>
+       <result column="POKE_GRADE" property="pokeGrade"/>             
+   </resultMap>
+   
+    <resultMap type="com.sist.web.model.PoketmonType" id="poketmonTypeResultMap">
+      <id column="POKE_TYPE" property="pokeType"/>
+      <result column="POKE_TYPENAME" property="pokeTypeName"/>
+      <result column="POKE_TYPE_COLOR" property="pokeTypeColor"/>
+      <result column="POKE_EN_TYPENAME" property="pokeEnTypeName"/>
+   </resultMap>
+   
+   
+  
+  <select id="poketmonList" parameterType = "com.sist.web.model.Poketmon" resultMap="poketmonResultMap">
+    SELECT POKE_ID
+       , POKE_TYPE_FIRST
+       , POKE_TYPENAME_FIRST
+       , POKE_TYPE_SECOND
+       , POKE_TYPENAME_SECOND
+       , POKE_TYPE_COLOR_FIRST
+       , POKE_TYPE_COLOR_SECOND
+       , POKE_NAME
+       , POKE_HEIGHT
+       , POKE_WEIGHT
+       , POKE_IMG
+       , POKE_CONTENT
+       , POKE_EVO
+       , POKE_GRADE
+     FROM (SELECT ROWNUM RNUM
+             , POKE_ID
+             , POKE_TYPE_FIRST
+             , POKE_TYPENAME_FIRST
+             , POKE_TYPE_SECOND
+             , POKE_TYPENAME_SECOND
+             , POKE_TYPE_COLOR_FIRST
+             , POKE_TYPE_COLOR_SECOND
+             , POKE_NAME
+             , POKE_HEIGHT
+             , POKE_WEIGHT
+             , POKE_IMG
+             , POKE_CONTENT
+             , POKE_EVO
+             , POKE_GRADE
+           FROM (SELECT POKE_ID
+                   , POKE_TYPE1 POKE_TYPE_FIRST
+                   , TYPE1.POKE_TYPENAME POKE_TYPENAME_FIRST
+                   , POKE_TYPE2 POKE_TYPE_SECOND
+                   , TYPE2.POKE_TYPENAME POKE_TYPENAME_SECOND 
+                   , TYPE1.POKE_TYPE_COLOR POKE_TYPE_COLOR_FIRST
+                   , TYPE2.POKE_TYPE_COLOR POKE_TYPE_COLOR_SECOND
+                   , POKE_NAME
+                   , POKE_HEIGHT                   
+                   , POKE_WEIGHT
+                   , POKE_IMG
+                   , POKE_CONTENT
+                   , POKE_EVO
+                   , POKE_GRADE
+                 FROM PK_INDEX PINDEX
+                   , PK_TYPE TYPE1
+                   , PK_TYPE TYPE2
+                WHERE PINDEX.POKE_TYPE1 = TYPE1.POKE_TYPE
+                  AND PINDEX.POKE_TYPE2 = TYPE2.POKE_TYPE 
+                    <if test='startDogam != null and startDogam != 0'>
+                  AND POKE_ID <![CDATA[>=]]> #{startDogam}
+                  </if>
+                  <if test='endDogam != null and endDogam != 0'>
+                  AND POKE_ID <![CDATA[<=]]> #{endDogam}
+                  </if>
+                  <if test='startWeight != null and startWeight != 0'>
+                  AND POKE_WEIGHT <![CDATA[>=]]> #{startWeight}
+                  </if>
+                  <if test='endWeight != null and endWeight != 0'>
+                  AND POKE_WEIGHT <![CDATA[<=]]> #{endWeight}
+                  </if>
+                  <if test='startHeight != null and startHeight != 0'>
+                  AND POKE_HEIGHT <![CDATA[>=]]> #{startHeight}
+                  </if>
+                  <if test='endHeight != null and endHeight != 0'>
+                  AND POKE_HEIGHT <![CDATA[<=]]> #{endHeight}
+                  </if>
+                  
+                  <if test='pokeSearch != null and pokeSearch != ""'>
+                  AND POKE_NAME LIKE '%' || #{pokeSearch} || '%'
+                  </if>
+                  
+                  
+                  <if test='typeList != null and typeList.size() > 0'>
+                  <foreach collection="typeList" item="type">
+                  AND EXISTS (SELECT 1 FROM PK_INDEX SUBINDEX WHERE SUBINDEX.POKE_ID = PINDEX.POKE_ID AND (SUBINDEX.POKE_TYPE1 = #{type} OR SUBINDEX.POKE_TYPE2 = #{type}))
+                  </foreach>
+                  </if>
+                  <if test='pokeSortValue == 1'>
+                  ORDER BY POKE_ID ASC
+                  </if>
+                  <if test='pokeSortValue == 2'>
+                  ORDER BY POKE_ID DESC
+                  </if>
+                  <if test='pokeSortValue == 3'>
+                  ORDER BY POKE_WEIGHT DESC
+                  </if>
+                  <if test='pokeSortValue == 4'>
+                  ORDER BY POKE_WEIGHT ASC
+                  </if>
+                  <if test='pokeSortValue == 5'>
+                  ORDER BY POKE_HEIGHT DESC
+                  </if>
+                  <if test='pokeSortValue == 6'>
+                  ORDER BY POKE_HEIGHT ASC
+                  </if>                                                                             
+                ))
+ WHERE RNUM <![CDATA[>=]]> #{startNum}
+   AND RNUM <![CDATA[<=]]> #{endNum}
+  </select>
+  
+  <select id="poketmonSelect" parameterType = "int" resultMap="poketmonResultMap">
+    SELECT POKE_ID
+       , POKE_TYPE_FIRST
+       , POKE_TYPENAME_FIRST
+       , POKE_TYPE_SECOND
+       , POKE_TYPENAME_SECOND
+       , POKE_TYPE_COLOR_FIRST
+       , POKE_TYPE_COLOR_SECOND
+       , POKE_NAME
+       , POKE_HEIGHT
+       , POKE_WEIGHT
+       , POKE_IMG
+       , POKE_CONTENT
+       , POKE_EVO
+       , POKE_GRADE
+     FROM (SELECT ROWNUM RNUM
+             , POKE_ID
+             , POKE_TYPE_FIRST
+             , POKE_TYPENAME_FIRST
+             , POKE_TYPE_SECOND
+             , POKE_TYPENAME_SECOND
+             , POKE_TYPE_COLOR_FIRST
+             , POKE_TYPE_COLOR_SECOND
+             , POKE_NAME
+             , POKE_HEIGHT
+             , POKE_WEIGHT
+             , POKE_IMG
+             , POKE_CONTENT
+             , POKE_EVO
+             , POKE_GRADE
+           FROM (SELECT POKE_ID
+                   , POKE_TYPE1 POKE_TYPE_FIRST
+                   , TYPE1.POKE_TYPENAME POKE_TYPENAME_FIRST
+                   , POKE_TYPE2 POKE_TYPE_SECOND
+                   , TYPE2.POKE_TYPENAME POKE_TYPENAME_SECOND 
+                   , TYPE1.POKE_TYPE_COLOR POKE_TYPE_COLOR_FIRST
+                   , TYPE2.POKE_TYPE_COLOR POKE_TYPE_COLOR_SECOND
+                   , POKE_NAME
+                   , POKE_HEIGHT                   
+                   , POKE_WEIGHT
+                   , POKE_IMG
+                   , POKE_CONTENT
+                   , POKE_EVO
+                   , POKE_GRADE
+                 FROM PK_INDEX PINDEX
+                   , PK_TYPE TYPE1
+                   , PK_TYPE TYPE2
+                WHERE PINDEX.POKE_TYPE1 = TYPE1.POKE_TYPE
+                  AND PINDEX.POKE_TYPE2 = TYPE2.POKE_TYPE                                 
+                  AND PINDEX.POKE_ID = #{value}))
+  </select>
+  
+  <select id="poketmonEvo" parameterType = "com.sist.web.model.Poketmon" resultMap="poketmonResultMap">
+    SELECT POKE_ID
+       , POKE_TYPE_FIRST
+       , POKE_TYPENAME_FIRST
+       , POKE_TYPE_SECOND
+       , POKE_TYPENAME_SECOND
+       , POKE_TYPE_COLOR_FIRST
+       , POKE_TYPE_COLOR_SECOND
+       , POKE_NAME
+       , POKE_HEIGHT
+       , POKE_WEIGHT
+       , POKE_IMG
+       , POKE_CONTENT
+       , POKE_EVO
+       , POKE_GRADE
+     FROM (SELECT ROWNUM RNUM
+             , POKE_ID
+             , POKE_TYPE_FIRST
+             , POKE_TYPENAME_FIRST
+             , POKE_TYPE_SECOND
+             , POKE_TYPENAME_SECOND
+             , POKE_TYPE_COLOR_FIRST
+             , POKE_TYPE_COLOR_SECOND
+             , POKE_NAME
+             , POKE_HEIGHT
+             , POKE_WEIGHT
+             , POKE_IMG
+             , POKE_CONTENT
+             , POKE_EVO
+             , POKE_GRADE
+           FROM (SELECT POKE_ID
+                   , POKE_TYPE1 POKE_TYPE_FIRST
+                   , TYPE1.POKE_TYPENAME POKE_TYPENAME_FIRST
+                   , POKE_TYPE2 POKE_TYPE_SECOND
+                   , TYPE2.POKE_TYPENAME POKE_TYPENAME_SECOND 
+                   , TYPE1.POKE_TYPE_COLOR POKE_TYPE_COLOR_FIRST
+                   , TYPE2.POKE_TYPE_COLOR POKE_TYPE_COLOR_SECOND
+                   , POKE_NAME
+                   , POKE_HEIGHT                   
+                   , POKE_WEIGHT
+                   , POKE_IMG
+                   , POKE_CONTENT
+                   , POKE_EVO
+                   , POKE_GRADE
+                 FROM PK_INDEX PINDEX
+                   , PK_TYPE TYPE1
+                   , PK_TYPE TYPE2
+                WHERE PINDEX.POKE_TYPE1 = TYPE1.POKE_TYPE
+                  AND PINDEX.POKE_TYPE2 = TYPE2.POKE_TYPE                               
+                  AND PINDEX.POKE_EVO = #{pokeEvo} 				                  
+                ORDER BY POKE_GRADE ASC))
+
+  </select>
+  
+   <select id="poketmonPrev" parameterType = "com.sist.web.model.Poketmon" resultMap="poketmonResultMap">
+    SELECT POKE_ID
+           , POKE_TYPE_FIRST
+           , POKE_TYPENAME_FIRST
+           , POKE_TYPE_SECOND
+           , POKE_TYPENAME_SECOND
+           , POKE_TYPE_COLOR_FIRST
+           , POKE_TYPE_COLOR_SECOND
+           , POKE_NAME
+           , POKE_HEIGHT
+           , POKE_WEIGHT
+           , POKE_IMG
+           , POKE_CONTENT
+           , POKE_EVO
+           , POKE_GRADE
+    FROM (
+        SELECT ROWNUM RNUM
+               , POKE_ID
+               , POKE_TYPE_FIRST
+               , POKE_TYPENAME_FIRST
+               , POKE_TYPE_SECOND
+               , POKE_TYPENAME_SECOND
+               , POKE_TYPE_COLOR_FIRST
+               , POKE_TYPE_COLOR_SECOND
+               , POKE_NAME
+               , POKE_HEIGHT                   
+               , POKE_WEIGHT
+               , POKE_IMG
+               , POKE_CONTENT
+               , POKE_EVO
+               , POKE_GRADE
+        FROM (
+            SELECT POKE_ID
+                   , POKE_TYPE1 POKE_TYPE_FIRST
+                   , TYPE1.POKE_TYPENAME POKE_TYPENAME_FIRST
+                   , POKE_TYPE2 POKE_TYPE_SECOND
+                   , TYPE2.POKE_TYPENAME POKE_TYPENAME_SECOND 
+                   , TYPE1.POKE_TYPE_COLOR POKE_TYPE_COLOR_FIRST
+                   , TYPE2.POKE_TYPE_COLOR POKE_TYPE_COLOR_SECOND
+                   , POKE_NAME
+                   , POKE_HEIGHT                   
+                   , POKE_WEIGHT
+                   , POKE_IMG
+                   , POKE_CONTENT
+                   , POKE_EVO
+                   , POKE_GRADE
+            FROM PK_INDEX PINDEX
+                 , PK_TYPE TYPE1
+                 , PK_TYPE TYPE2
+            WHERE PINDEX.POKE_TYPE1 = TYPE1.POKE_TYPE
+              AND PINDEX.POKE_TYPE2 = TYPE2.POKE_TYPE
+            AND PINDEX.POKE_ID <![CDATA[<=]]> #{pokePrev}
+      ORDER BY PINDEX.POKE_ID DESC))
+      WHERE RNUM = 1
+  </select>
+  
+    <select id="poketmonNext" parameterType = "com.sist.web.model.Poketmon" resultMap="poketmonResultMap">
+    SELECT POKE_ID
+           , POKE_TYPE_FIRST
+           , POKE_TYPENAME_FIRST
+           , POKE_TYPE_SECOND
+           , POKE_TYPENAME_SECOND
+           , POKE_TYPE_COLOR_FIRST
+           , POKE_TYPE_COLOR_SECOND
+           , POKE_NAME
+           , POKE_HEIGHT
+           , POKE_WEIGHT
+           , POKE_IMG
+           , POKE_CONTENT
+           , POKE_EVO
+           , POKE_GRADE
+    FROM (
+        SELECT ROWNUM RNUM
+               , POKE_ID
+               , POKE_TYPE_FIRST
+               , POKE_TYPENAME_FIRST
+               , POKE_TYPE_SECOND
+               , POKE_TYPENAME_SECOND
+               , POKE_TYPE_COLOR_FIRST
+               , POKE_TYPE_COLOR_SECOND
+               , POKE_NAME
+               , POKE_HEIGHT                   
+               , POKE_WEIGHT
+               , POKE_IMG
+               , POKE_CONTENT
+               , POKE_EVO
+               , POKE_GRADE
+        FROM (
+            SELECT POKE_ID
+                   , POKE_TYPE1 POKE_TYPE_FIRST
+                   , TYPE1.POKE_TYPENAME POKE_TYPENAME_FIRST
+                   , POKE_TYPE2 POKE_TYPE_SECOND
+                   , TYPE2.POKE_TYPENAME POKE_TYPENAME_SECOND 
+                   , TYPE1.POKE_TYPE_COLOR POKE_TYPE_COLOR_FIRST
+                   , TYPE2.POKE_TYPE_COLOR POKE_TYPE_COLOR_SECOND
+                   , POKE_NAME
+                   , POKE_HEIGHT                   
+                   , POKE_WEIGHT
+                   , POKE_IMG
+                   , POKE_CONTENT
+                   , POKE_EVO
+                   , POKE_GRADE
+            FROM PK_INDEX PINDEX
+                 , PK_TYPE TYPE1
+                 , PK_TYPE TYPE2
+            WHERE PINDEX.POKE_TYPE1 = TYPE1.POKE_TYPE
+              AND PINDEX.POKE_TYPE2 = TYPE2.POKE_TYPE
+            AND PINDEX.POKE_ID <![CDATA[>=]]> #{pokeNext}
+      ORDER BY PINDEX.POKE_ID ASC))
+      WHERE RNUM = 1
+  </select>
+  
+  <select id="pokeTypeList" parameterType = "java.util.Map" resultMap="poketmonTypeResultMap">
+   SELECT
+   POKE_TYPE,
+   POKE_TYPENAME,
+   POKE_TYPE_COLOR,
+   POKE_EN_TYPENAME
+   FROM PK_TYPE
+  </select>
+  
+  <select id="poketmonListCount" parameterType="com.sist.web.model.Poketmon" resultType="int">
+		SELECT COUNT(POKE_ID) COUNT
+		  FROM PK_INDEX
+		   WHERE POKE_ID BETWEEN #{minIndexNum} AND #{maxIndexNum}
+             AND POKE_HEIGHT BETWEEN #{minHeightNum} AND #{maxHeightNum}
+             AND POKE_WEIGHT BETWEEN #{minWeightNum} AND #{maxWeightNum}
+             <if test="pokeTypes != null and pokeTypes.length > 0">
+                 AND (POKE_TYPE1 IN
+                 <foreach item="type" index="index" collection="pokeTypes" open="(" separator="," close=")">
+                     ${type}
+                 </foreach>
+                 OR POKE_TYPE2 IN
+                 <foreach item="type" index="index" collection="pokeTypes" open="(" separator="," close=")">
+                     ${type}
+                 </foreach>
+                 )
+             </if>
+	</select>
+  
+</mapper>

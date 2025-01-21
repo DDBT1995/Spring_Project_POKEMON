@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="com.sist.web.dao.BoardDao">
+
+<!-- 게시판 리스트 resultMap -->
+<resultMap type="com.sist.web.model.Board" id="BoardResultMap">
+	<id column="BOARD_SEQ" property="boardSeq" />
+    <result column="USER_EMAIL" property="userEmail" />
+    <result column="USER_NAME" property="userName" />
+    <result column="USER_NICKNAME" property="userNickname" />
+    <result column="BOARD_TITLE" property="boardTitle" />
+    <result column="BOARD_CONTENT" property="boardContent" /> 
+    <result column="BOARD_CATEGORY" property="boardCategory" />
+    <result column="BOARD_READ_CNT" property="boardReadCnt" />
+    <result column="LIKE_COUNT" property="likeCount" />
+    <result column="BOARD_STATUS" property="boardStatus" />
+    <result column="BOARD_REG_DATE" property="boardRegDate" />
+    <result column="BOARD_MODI_DATE" property="boardModiDate" />
+    <result column="BOARD_DEL_DATE" property="boardDelDate" />
+    
+    
+</resultMap>
+
+<!-- 첨부파일 resultMap -->
+<resultMap type="com.sist.web.model.BoardFile" id="BoardFileResultMap">
+	<id column="BOARD_SEQ" property="boardSeq"/>
+   	<id column="FILE_SEQ" property="fileSeq"/>
+ 	<result column="FILE_ORG_NAME" property="fileOrgName"/>
+	<result column="FILE_NAME" property="fileName"/>
+	<result column="FILE_EXT" property="fileExt"/>
+	<result column="FILE_SIZE" property="fileSize"/>
+	<result column="FILE_REG_DATE" property="fileRegDate"/>
+</resultMap>
+
+<!-- 댓글 리스트 resultMap -->
+<resultMap type="com.sist.web.model.Comm" id="CommResultMap">
+	<id column="COMM_SEQ" property="commSeq" />
+    <result column="USER_EMAIL" property="userEmail" />
+    <result column="USER_NAME" property="userName" />
+    <result column="USER_NICKNAME" property="userNickname" />
+    <result column="BOARD_SEQ" property="boardSeq" />
+    <result column="COMM_CONTENT" property="commContent" /> 
+    <result column="COMM_REG_DATE" property="commRegDate" />
+    <result column="COMM_MODI_DATE" property="commModiDate" />
+    <result column="COMM_DEL_DATE" property="commDelDate" />
+    <result column="COMM_GROUP" property="commGroup" />
+    <result column="COMM_ORDER" property="commOrder" />
+    <result column="COMM_INDENT" property="commIndent" />
+    <result column="COMM_PARENT" property="commParent" />
+</resultMap>
+
+
+<!-- 게시물 등록 -->
+<insert id="boardInsert" parameterType="com.sist.web.model.Board">
+<!-- 선행처리기 (시퀀스 조회) -->
+<selectKey resultType="long" keyProperty="boardSeq" order="BEFORE">
+	SELECT SEQ_PK_BOARD_SEQ.NEXTVAL FROM DUAL
+</selectKey>
+	INSERT INTO PK_BOARD (
+    BOARD_SEQ,
+    USER_EMAIL,
+    BOARD_TITLE,
+    BOARD_CONTENT,
+    BOARD_CATEGORY,
+    BOARD_READ_CNT,
+    BOARD_REG_DATE,
+    BOARD_MODI_DATE,
+    BOARD_DEL_DATE,
+    BOARD_STATUS
+) VALUES (
+    #{boardSeq},
+    #{userEmail},
+    #{boardTitle},
+    #{boardContent},
+    #{boardCategory},
+    #{boardReadCnt},
+    SYSDATE,
+    NULL,
+    NULL,
+    #{boardStatus}
+)
+</insert>
+
+	<!-- 첨파파일 등록 -->
+<insert id="boardFileInsert" parameterType="com.sist.web.model.BoardFile">
+<selectKey resultType="short" keyProperty="fileSeq" order="BEFORE">
+	SELECT SEQ_PK_FILE_SEQ.NEXTVAL FROM DUAL
+</selectKey>
+	INSERT INTO PK_BOARD_FILE (
+    FILE_SEQ,
+    BOARD_SEQ,
+    FILE_ORG_NAME,
+    FILE_NAME,
+    FILE_EXT,
+    FILE_SIZE,
+    FILE_REG_DATE
+) VALUES (
+    #{fileSeq},
+    #{boardSeq},
+    #{fileOrgName},
+    #{fileName},
+    #{fileExt},
+    #{fileSize},
+    SYSDATE
+)
+</insert>
+	
+<!-- 게시판 리스트 -->
+<select id="boardList" parameterType="com.sist.web.model.Board" resultMap="BoardResultMap">
+ SELECT   BOARD_SEQ,
+             USER_EMAIL,
+             USER_NAME,
+             USER_NICKNAME,
+             BOARD_TITLE,
+             BOARD_CONTENT,
+             BOARD_CATEGORY,
+             BOARD_READ_CNT,
+             BOARD_STATUS,
+             BOARD_REG_DATE,
+             BOARD_MODI_DATE,
+             BOARD_DEL_DATE
+        FROM(SELECT  ROWNUM AS RNUM,
+                     BOARD_SEQ,
+                     USER_EMAIL,
+                     USER_NAME,
+                     USER_NICKNAME,
+                     BOARD_TITLE,
+                     BOARD_CONTENT,
+                     BOARD_CATEGORY,
+                     BOARD_READ_CNT,
+                     BOARD_STATUS,
+                     BOARD_REG_DATE,
+                     BOARD_MODI_DATE,
+                     BOARD_DEL_DATE
+                FROM(SELECT A.BOARD_SEQ,
+                            A.USER_EMAIL,
+                            NVL(B.USER_NAME, '') USER_NAME,
+                            NVL(B.USER_NICKNAME, '') USER_NICKNAME,
+                            NVL(A.BOARD_TITLE, '') BOARD_TITLE,
+                            NVL(A.BOARD_CONTENT, '') BOARD_CONTENT,
+                            NVL(A.BOARD_CONTENT, '') BOARD_CATEGORY,
+                            NVL(A.BOARD_READ_CNT, 0) BOARD_READ_CNT,
+                            NVL(A.BOARD_STATUS, 'Y') BOARD_STATUS,
+                            NVL(TO_CHAR(A.BOARD_REG_DATE, 'YYYY.MM.DD HH24:MI:SS'), '') BOARD_REG_DATE,
+                            NVL(TO_CHAR(A.BOARD_MODI_DATE, 'YYYY.MM.DD HH24:MI:SS'), '') BOARD_MODI_DATE,
+                            NVL(TO_CHAR(A.BOARD_DEL_DATE, 'YYYY.MM.DD HH24:MI:SS'), '') BOARD_DEL_DATE
+               FROM  PK_BOARD A, PK_USER B
+               WHERE A.USER_EMAIL = B.USER_EMAIL
+               AND A.BOARD_STATUS = 'Y'
+                   
+		<if test='searchType != null and searchType != "" and searchValue != null and searchValue != ""'>
+			<choose>
+			  <when test='searchType == "1"'>
+                AND B.USER_NICKNAME LIKE '%' ||#{searchValue}|| '%'
+              </when>
+              <when test='searchType == "2"'>  
+                AND A.BOARD_TITLE LIKE '%' ||#{searchValue}|| '%'
+              </when>  
+              <when test='searchType == "3"'>
+                AND DBMS_LOB.INSTR(A.BOARD_CONTENT, #{searchValue}) > 0
+              </when>  
+            </choose>
+		</if>	                
+                 ORDER BY  A.BOARD_SEQ DESC))
+	WHERE RNUM <![CDATA[>=]]> #{startRow}
+ 	AND RNUM <![CDATA[<=]]> #{endRow}
+</select>
+	
+<!-- 총 게시판 수 -->
+	
+<select id="boardListCount"	parameterType="com.sist.web.model.Board" resultType="long">
+	SELECT COUNT(A.BOARD_SEQ) CNT
+	 	FROM PK_BOARD A, PK_USER B
+	    WHERE A.USER_EMAIL = B.USER_EMAIL
+	    AND A.BOARD_STATUS = 'Y'
+	
+	<if test='searchType != null and searchType != "" and searchValue != null and searchValue != ""'>
+	    <choose>
+	        <when test='searchType == "1"'>   
+	   AND B.USER_NICKNAME LIKE '%' || #{searchValue} || '%'
+	        </when>
+	        <when test='searchType == "2"'>  
+	   AND A.BOARD_TITLE LIKE '%' || #{searchValue} || '%'
+	        </when>
+	        <when test='searchType == "3"'>   
+	   AND DBMS_LOB.INSTR(A.BOARD_CONTENT, #{searchValue}) > 0
+	        </when>
+    	</choose>
+</if>   
+</select>	
+
+<!-- 게시물 조회 -->
+<select id="boardSelect" parameterType="long" resultMap="BoardResultMap" >
+	SELECT (SELECT COUNT(*) FROM PK_LIKEY P WHERE P.BOARD_SEQ = A.BOARD_SEQ) AS LIKE_COUNT,
+			A.BOARD_SEQ,
+	        A.USER_EMAIL,
+	        B.USER_NAME,
+	        B.USER_NICKNAME,
+	        A.BOARD_TITLE,
+	        A.BOARD_CONTENT,
+	        NVL(A.BOARD_CATEGORY, '') BOARD_CATEGORY,
+	        A.BOARD_READ_CNT,
+	        TO_CHAR(A.BOARD_REG_DATE, 'YYYY.MM.DD HH24:MI:SS') BOARD_REG_DATE,
+	        NVL(TO_CHAR(A.BOARD_MODI_DATE, 'YYYY.MM.DD HH24:MI:SS'), '') BOARD_MODI_DATE,
+	        NVL(TO_CHAR(A.BOARD_DEL_DATE, 'YYYY.MM.DD HH24:MI:SS'), '')  BOARD_DEL_DATE,
+	        A.BOARD_STATUS
+	  FROM  PK_BOARD A, PK_USER B
+	  WHERE A.BOARD_SEQ = #{value}
+	  AND A.BOARD_STATUS = 'Y'
+	  AND A.USER_EMAIL = B.USER_EMAIL
+</select>
+
+<!-- 첨부파일 조회 -->
+<select id="boardFileSelect" parameterType="long" resultMap="BoardFileResultMap">
+	SELECT FILE_SEQ, 
+	       BOARD_SEQ,
+	       NVL(FILE_ORG_NAME, '') FILE_ORG_NAME,
+	       NVL(FILE_NAME, '') FILE_NAME,
+	       NVL(FILE_EXT, '') FILE_EXT,
+	       NVL(FILE_SIZE, 0) FILE_SIZE,
+	       NVL(TO_CHAR(FILE_REG_DATE, 'YYYY.MM.DD HH24:MI:SS'), '') FILE_REG_DATE
+	 FROM  PK_BOARD_FILE
+	 WHERE BOARD_SEQ = #{value}
+</select>
+
+<update id="boardReadCntPlus" parameterType="long">
+UPDATE PK_BOARD
+    SET BOARD_READ_CNT = BOARD_READ_CNT + 1
+    WHERE BOARD_SEQ = #{value}
+</update>	
+
+<!-- 게시물 수정 -->
+<update id="boardUpdate" parameterType="com.sist.web.model.Board">
+UPDATE PK_BOARD
+	SET BOARD_TITLE = #{boardTitle},
+    BOARD_CONTENT = #{boardContent},
+    BOARD_MODI_DATE = SYSDATE
+    WHERE BOARD_SEQ = #{boardSeq}
+</update>
+
+<!-- 파일 삭제 -->
+<delete id="boardFileDelete" parameterType="long">
+DELETE FROM PK_BOARD_FILE
+	WHERE BOARD_SEQ = #{value}
+</delete>
+
+<!-- 게시물 삭제 업데이트 -->
+<update id="boardDelete" parameterType="com.sist.web.model.Board">
+	UPDATE PK_BOARD
+	SET BOARD_STATUS = #{boardStatus},
+    BOARD_DEL_DATE = SYSDATE
+    WHERE BOARD_SEQ = #{boardSeq}
+</update>
+
+<!-- 게시물 답글 등록 -->
+<insert id="commInsert" parameterType="com.sist.web.model.Comm">
+<selectKey resultType="long" keyProperty="commSeq" order="BEFORE">
+	SELECT SEQ_PK_COMM_SEQ.NEXTVAL FROM DUAL
+</selectKey>
+	INSERT INTO PK_COMM (
+    COMM_SEQ,
+    USER_EMAIL,
+    BOARD_SEQ,
+    COMM_CONTENT,
+    COMM_REG_DATE,
+    COMM_MODI_DATE,
+    COMM_DEL_DATE,
+    COMM_GROUP,
+    COMM_ORDER,
+    COMM_INDENT,
+    COMM_PARENT
+) VALUES (
+    #{commSeq},
+    #{userEmail},
+    #{boardSeq},
+    #{commContent},
+    SYSDATE,
+    NULL,
+    NULL,
+    #{commGroup},
+    #{commOrder},
+    #{commIndent},
+    #{commParent}
+)
+</insert>
+
+<!-- 댓글 리스트 -->
+<select id="commList" parameterType="com.sist.web.model.Comm" resultMap="CommResultMap">
+SELECT  COMM_SEQ,
+        USER_EMAIL,
+        USER_NAME,
+        USER_NICKNAME,
+        BOARD_SEQ,
+        COMM_CONTENT,
+        COMM_REG_DATE,
+        COMM_MODI_DATE,
+        COMM_DEL_DATE,  
+        COMM_GROUP, 
+        COMM_ORDER, 
+        COMM_INDENT,
+        COMM_PARENT
+        FROM(SELECT ROWNUM RNUM,
+                    COMM_SEQ,
+                    USER_EMAIL,
+                    USER_NAME,
+                    USER_NICKNAME,
+                    BOARD_SEQ,
+                    COMM_CONTENT,
+                    COMM_REG_DATE,
+                    COMM_MODI_DATE,
+                    COMM_DEL_DATE,  
+                    COMM_GROUP, 
+                    COMM_ORDER, 
+                    COMM_INDENT,
+                    COMM_PARENT
+            FROM(SELECT A.COMM_SEQ COMM_SEQ,
+				       C.USER_EMAIL USER_EMAIL,
+				       C. USER_NAME USER_NAME,
+				       C.USER_NICKNAME USER_NICKNAME,  
+				       B.BOARD_SEQ BOARD_SEQ,
+				       A.COMM_CONTENT COMM_CONTENT,
+				       A.COMM_REG_DATE COMM_REG_DATE,
+				       NVL(TO_CHAR(A.COMM_MODI_DATE, 'YYYY.MM.DD HH24:MI:SS'), '') COMM_MODI_DATE,
+				       NVL(TO_CHAR(A.COMM_DEL_DATE,  'YYYY.MM.DD HH24:MI:SS'), '') COMM_DEL_DATE,
+				       NVL(A.COMM_GROUP, 0) COMM_GROUP,
+				       NVL(A.COMM_ORDER, 0) COMM_ORDER,
+				       NVL(A.COMM_INDENT, 0) COMM_INDENT,
+				       A.COMM_PARENT COMM_PARENT
+				 FROM  PK_COMM A, PK_BOARD B, PK_USER C
+				WHERE A.BOARD_SEQ = B.BOARD_SEQ 
+				AND C.USER_EMAIL = A.USER_EMAIL
+ <if test='boardSeq != null and boardSeq != "" and 
+ commParent != null and commParent != "" and boardSeq == commParent'>
+                AND B.BOARD_SEQ = A.COMM_PARENT
+ </if>                
+                AND B.BOARD_SEQ = #{boardSeq}                             
+                ORDER BY A.COMM_SEQ DESC))
+                
+<if test='boardSeq != null and boardSeq != "" and 
+commParent != null and commParent != "" and boardSeq == commParent'>
+	    
+WHERE RNUM <![CDATA[>=]]> #{startRow}
+AND RNUM <![CDATA[<=]]> #{endRow}	
+	     
+</if>   
+ 
+</select>
+
+<!-- 총 댓글수 수 대댓 빼고 -->
+	
+<select id="commListCount"	parameterType="com.sist.web.model.Board" resultType="long">
+SELECT COUNT(A.COMM_SEQ) AS CNT
+    FROM  PK_COMM A, PK_BOARD B, PK_USER C
+    WHERE A.BOARD_SEQ = B.BOARD_SEQ 
+    AND C.USER_EMAIL = A.USER_EMAIL
+    AND A.COMM_PARENT = #{boardSeq}
+</select>
+
+
+<insert id="likeCheck" parameterType="com.sist.web.model.Board">
+INSERT INTO PK_LIKEY (
+    BOARD_SEQ,
+    USER_EMAIL
+) VALUES (
+    #{boardSeq},
+    #{userEmail}
+)
+</insert>
+
+<select id="likeCheckUser"	parameterType="com.sist.web.model.Board" resultType="long">
+SELECT COUNT(C.USER_EMAIL) CNT
+  FROM  PK_LIKEY A, PK_BOARD B, PK_USER C
+ WHERE A.BOARD_SEQ = B.BOARD_SEQ
+ AND A.USER_EMAIL = C.USER_EMAIL
+ AND B.BOARD_SEQ = #{boardSeq}
+ AND C.USER_EMAIL = #{userEmail}
+</select>
+
+<delete id="likeCheckDel" parameterType="com.sist.web.model.Board">
+DELETE FROM PK_LIKEY
+WHERE BOARD_SEQ = #{boardSeq}
+  AND USER_EMAIL = #{userEmail}
+  </delete>
+  
+  
+  
+<select id="commSelect" parameterType="com.sist.web.model.Comm" resultMap="CommResultMap">  
+SELECT A.COMM_SEQ COMM_SEQ,
+       C.USER_EMAIL USER_EMAIL,
+       C. USER_NAME USER_NAME,
+       C.USER_NICKNAME USER_NICKNAME,  
+       B.BOARD_SEQ BOARD_SEQ,
+       A.COMM_CONTENT COMM_CONTENT,
+       A.COMM_REG_DATE COMM_REG_DATE,
+       NVL(TO_CHAR(A.COMM_MODI_DATE, 'YYYY.MM.DD HH24:MI:SS'), '') COMM_MODI_DATE,
+       NVL(TO_CHAR(A.COMM_DEL_DATE,  'YYYY.MM.DD HH24:MI:SS'), '') COMM_DEL_DATE,
+       NVL(A.COMM_GROUP, 0) COMM_GROUP,
+       NVL(A.COMM_ORDER, 0) COMM_ORDER,
+       NVL(A.COMM_INDENT, 0) COMM_INDENT,
+       A.COMM_PARENT COMM_PARENT
+ FROM  PK_COMM A, PK_BOARD B, PK_USER C
+WHERE A.BOARD_SEQ = B.BOARD_SEQ 
+AND C.USER_EMAIL = A.USER_EMAIL
+AND A.COMM_SEQ = #{commSeq}
+</select>
+
+<update id="commUpdate" parameterType="com.sist.web.model.Comm">
+
+UPDATE  PK_COMM
+    SET COMM_CONTENT = #{commContent}, COMM_MODI_DATE = SYSDATE
+  WHERE COMM_SEQ = #{commSeq}
+</update>
+
+<delete id="commDel" parameterType="com.sist.web.model.Comm">
+DELETE 
+  FROM PK_COMM
+ WHERE COMM_SEQ = #{commSeq}
+    OR COMM_PARENT = #{commParent}
+ </delete>
+
+
+
+
+</mapper>
